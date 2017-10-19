@@ -299,6 +299,9 @@ def apply_threshold(heatmap, threshold):
     return heatmap
 
 def draw_labeled_bboxes(img, labels, min_size=(50,50)):
+    '''
+    Adapted from Udacity Vehicle Detection and Tracking Project Lesson
+    '''
     # Iterate through all detected cars
     for car_number in range(1, labels[1]+1):
         # Find pixels with each car_number label value
@@ -317,6 +320,9 @@ def draw_labeled_bboxes(img, labels, min_size=(50,50)):
     return img
 
 def get_training_set():
+    '''
+    Utility to read the training set file names.
+    '''
     cars = []
     notcars = []
     # load folder names for cars and noncars
@@ -330,29 +336,6 @@ def get_training_set():
         notcars.extend(glob.glob(root+db_type+'/*'))
     print("found {} cars and {} notcars".format(len(cars), len(notcars)))
     return cars, notcars
-
-def do_heatmap():
-    # Add heat to each box in box list
-    heat = add_heat(heat,box_list)
-      
-    # Apply threshold to help remove false positives
-    heat = apply_threshold(heat,1)
-
-    # visualise the heatmap when displaying
-    heatmap = np.clip(heat, 0, 255)
-
-    # Find final boxes from heatmap using label function
-    labels = label(heatmap)
-    draw_img = draw_labeled_bboxes(np.copy(image), labels)
-
-    fig = plt.figure()
-    plt.subplot(121)
-    plt.imshow(draw_img)
-    plt.title('Car Positions')
-    plt.subplot(122)
-    plt.imshow(heatmap, cmap='hot')
-    plt.title('Heat Map')
-    fig.tight_layout()
 
 def visualise_plot(fig, rows, cols, images, titles, is_plot=False):
     '''
@@ -377,6 +360,10 @@ def visualise_plot(fig, rows, cols, images, titles, is_plot=False):
     plt.tight_layout()
 
 def visualise_hog(colorspace='RGB'):
+    '''
+    Utility to visulize the HOG features.
+    Adapted from https://www.youtube.com/watch?v=P2zwrTM8ueA&index=5&list=PLAwxTw4SYaPkz3HerxrHlu1Seq8ZA7-5P
+    '''
     # chose a random training set
     car_ind =4133# np.random.randint(0, len(cars))#5575#
     print(car_ind)
@@ -675,6 +662,9 @@ def find_cars(img, ystart, ystop, xstart, xstop, scale, svc, X_scaler, orient,
     return draw_img, heatmap, img_boxes, count
 
 def trackCars(path):
+    '''
+    Utility to track cars in an image set. Used for verification.
+    '''
     example_images = glob.glob(path)
     ystart = 400
     ystop = 720
@@ -708,6 +698,9 @@ def trackCars(path):
 
 
 def trackZoomHeatmap(img):
+    '''
+    Method to track cars in heatmap for a range of scales.
+    '''
     img1 = img.astype(np.float32)/255
     heat_map = np.zeros_like(img1[:,:,0])
     total = 0
@@ -723,6 +716,9 @@ def trackZoomHeatmap(img):
     return draw_img, heat_map, total
 
 def testZoomHeatmap(path):
+    '''
+    A visualization method to test the tracking of cars in a heatmap at different scales.
+    '''
     example_images = glob.glob(path)
     out_images = []
     out_titles = []
@@ -739,24 +735,10 @@ def testZoomHeatmap(path):
     visualise_plot(fig, len(out_images)//2, 2, out_images, out_titles)
     plt.show()
 
-def processZoomHeatmap(img):
-        out_img, _ , count = trackZoomHeatmap(img)
-        return out_img
-
-def processImage(img):
-    ystart = 400
-    ystop = 720
-    xstart = 0
-    xstop = 1280
-    scale = 1.0
-    out_img, heatmap, _ = find_cars(img, ystart, ystop, xstart, xstop, scale, svc,
-        X_scaler, orient, pix_per_cell, cell_per_block, spatial_size, hist_bins)
-    heatmap = apply_threshold(heatmap, 3)
-    labels = label(heatmap)
-    draw_img = draw_labeled_bboxes(np.copy(img), labels)
-    return draw_img
-
 def visualizeMultiscaleSearch(path):
+    '''
+    Method to visualize the multiscale search windows.
+    '''
     overlap = 0.0
     t1 = time.time()
     img = mpimg.imread(path)
@@ -774,6 +756,9 @@ def visualizeMultiscaleSearch(path):
     plt.show()
 
 class SearchWindow:
+    '''
+    Class to hold the search window parameters
+    '''
     def __init__(self, startx=None, endx=None, starty=None, endy=None, scale=1.0, name=''):
         self.startx = startx
         self.endx = endx
@@ -783,6 +768,9 @@ class SearchWindow:
         self.name = name
 
 class Tracker:
+    '''
+    Class to hold the current tracking metrics.
+    '''
     def __init__(self, threshold=30, n_average=5, select=(1,1,1,1,1)):
         self.heat_tracks = []
         self.sw = []
@@ -825,6 +813,9 @@ def trackZoomHeat(img):
     return heat_map, draw_img, total
 
 def processLaneLines(image):
+    '''
+    Process function for detecting and drawing the lane lines.
+    '''
     # Apply a distortion correction to raw images.
     udist_img = cv2.undistort(image, mtx, dist, None, mtx)
 
@@ -848,6 +839,9 @@ def processLaneLines(image):
     return udist_img, final_img
 
 def visualizeImageSequence():
+    '''
+    Method to visualize the heatmap history buffer in an image sequence
+    '''
     # 6 frames and corresponding heat maps
     example_images = glob.glob('./test_images/track*.jpg')
     out_images = []
@@ -977,7 +971,7 @@ pvt = lf.Perspective(src_pts, world_ym, scale=1.0)
 mtx, dist = lf.loadDistortion("dist_pickle.p")
 
 if 0:
-    t = 80
+    t = 75
     n = 25
     track = Tracker(threshold=t, n_average=n, select=(1,1,1,1,1))
     project_output = 'output_videos/test_video_n{}_thresh{}_scale{}{}{}{}{}.mp4'.format(
@@ -988,8 +982,8 @@ if 0:
     project_clip.write_videofile(project_output, audio=False)
 
 if 1:
-    t = 80 #80 #110 #80
-    n = 15 #15 #25
+    t = 90 #80 #110 #80
+    n = 20 #15 #15 #25
     cstart = 38 #20 #10, 22, 38
     cend = 44 #23 #27, 27, 44
     track = Tracker(threshold=t, n_average=n, select=(1,1,1,1,1))
